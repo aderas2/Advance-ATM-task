@@ -4,8 +4,12 @@
 
 #initializing the system
 import random
+import validation
+import database
+from getpass import getpass
 
-database = {}
+
+
 def init():
 
     
@@ -28,20 +32,22 @@ def login():
    
     accountNumberFromUser = (input('What is your account Number? \n'))
 
-    is_valid_account_number = account_number_validation(accountNumberFromUser)
+    is_valid_account_number =validation. account_number_validation(accountNumberFromUser)
 
     if is_valid_account_number:
-      password = input('What is your password? \n')
 
-      for accountNumber,userDetails in database.items():
-        if accountNumber==int(accountNumberFromUser):
-          if(userDetails[3]==password):
-            bankOperation(userDetails)
-            
-        else:
-          print('Invalid account or password')
-          login()
+      password = getpass('What is your password \n')
+
+      user= database.authenticated_user(accountNumberFromUser,password)
+
+      if user:
+        bankOperation(user)
+
+      print('Invalid account or password')
+      login()
+      
     else:
+      print('Account number Invalid, check that you have up to 10 digit and only integers')
       init()
 
 
@@ -52,108 +58,56 @@ def register():
   email = input('What is your email address? \n')
   first_name = input('What is your first name? \n')
   last_name = input('What is your last name? \n')
-  password = input('please create a password. \n')
+  password = getpass('please create a password. \n')
+  
 
 
 
-  try:
+  accountNumber = generateAccountNumber()
 
-    accountNumber = generateAccountNumber()
+  is_user_created = database.create(accountNumber, first_name, last_name ,email, password)
 
-  except ValueError:
-    print('Account generation failed due to internet connection')
-    init()
+  if is_user_created:
 
+    print('Your account has been created')
+    print('==== ======= ====== ======= =====')
+    print('Your account number is: %d' %accountNumber)
+    print('Make sure you keep it safe')
+    print('==== ======= ====== ======= =====')
 
+    login()
 
-  database[accountNumber] = [first_name,last_name,email,password]
+  else:
 
-  print('Your account has been created')
-  print('==== ======= ====== ======= =====')
-  print('Your account number is: %d' %accountNumber)
-  print('Make sure you keep it safe')
-  print('==== ======= ====== ======= =====')
+    print('Something went wrong, please try again')
+    register()
 
-  login()
 
  
 
 def bankOperation(user):
     print('Welcome %s %s' %(user[0],user[1]))    
 
-    selectedOption = (input('What would you like to do? (1) deposit (2) Withdrawal (3) Logout (4) exit \n'))
-    is_valid_option = bank_option_validation(selectedOption)
+    selectedOption = int((input('What would you like to do? (1) deposit (2) Withdrawal (3) Logout (4) exit \n')))
 
-    if is_valid_option:
-      if (is_valid_option == 1):      
+    if (selectedOption == 1):      
         depositOperation()
 
-      elif (is_valid_option == 2):      
+    elif (selectedOption == 2):      
         withdrawalOperation()
 
-      elif (is_valid_option == 3):
+    elif (selectedOption == 3):
         logout()
 
-      elif (is_valid_option == 4):
+    elif (selectedOption == 4):
         exit()
 
-      else:
+    else:
         print('Invalid option selected')
         bankOperation(user)
-    else:
-     bankOperation(user) 
 
+     
 
-
-def bank_option_validation(optionspicked):
- #check if account_number is not empty
-   #if account_number is 10 digits
-   #if the account_number is an integer
-   if optionspicked:
-     if len(str(optionspicked))==1:
-
-       try:
-         int(optionspicked)
-         return True
-      
-       except ValueError:
-          print('Invalid Option, Option should be integer')
-          return False
-       except TypeError:
-         print('Invalid Option type')
-         return False
-     else:
-       print('Option cannot be less or more than 1 digits')
-       return False
-   else:
-     print('Option is a required field')
-     return False
-
-
-
-def account_number_validation(account_number):
-   #check if account_number is not empty
-   #if account_number is 10 digits
-   #if the account_number is an integer
-   if account_number:
-     if len(str(account_number))==10:
-
-       try:
-         int(account_number)
-         return True
-      
-       except ValueError:
-          print('Invalid Account Number, account number should be integer')
-          return False
-       except TypeError:
-         print('Invalid account type')
-         return False
-     else:
-       print('Account Number cannot be less or more than 10 digits')
-       return False
-   else:
-     print('Account Number is a required field')
-     return False
 
 
 
